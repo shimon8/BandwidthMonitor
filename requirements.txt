@@ -1,0 +1,11 @@
+importlib-resources==5.7.1
+packaging==21.3
+psutil==5.9.1
+py-notifier==0.3.2
+pydbus==0.6.0
+pyparsing==3.0.9
+pypiwin32==223
+pywin32==304
+win10toast==0.9
+winsdk==1.0.0b5
+zipp==3.8.0
