@@ -9,8 +9,8 @@ from CostumeMonitor import CostumeMonitor
 app = Flask(__name__)
 
 
-def init_montioring(*arg):
-    argv=arg
+def init_montioring(*args):
+    argv=args
     min_value = None
     max_value = None
     interface_name = 'Wi-Fi'  # default
@@ -109,13 +109,16 @@ def hello_world():
 @app.route("/getMonitor")
 def get():
     return jsonify("costume_monitor")
-
-
+@app.route("/stop")
+def stop():
+    montioring.join()
+    return jsonify("costume_monitor")
+global montioring
 if __name__ == '__main__':
     # interface_name = check_if_interface_name_exsist("Wi-Fi")
     # costume_monitor = CostumeMonitor(interface_name=interface_name, min_value=1000, max_value=100000000)
     # start_monitoring(costume_monitor)
+    #init_montioring(sys.argv)
     montioring = threading.Thread(target=init_montioring, name="Monitor", args=sys.argv)
     montioring.start()
     app.run()
-

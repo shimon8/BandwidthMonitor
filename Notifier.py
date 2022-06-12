@@ -1,3 +1,5 @@
+import os
+
 from pynotifier import Notification
 from win10toast import ToastNotifier
 
@@ -7,7 +9,8 @@ class Notifier:
     def send_notfication(desc):
         try:
             notf = ToastNotifier()
-            notf.show_toast("Network Bandwidth Alert", desc, "./assets/network.ico")
+            icon_path=rf'{os.path.dirname(os.path.realpath(__file__))}\assets\network.ico'
+            notf.show_toast("Network Bandwidth Alert", desc, icon_path)
             # Notification(
             #     title='network notificatin',
             #     icon_path=r"./assets/network.ico",
