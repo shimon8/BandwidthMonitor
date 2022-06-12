@@ -1,12 +1,16 @@
 import getopt
 import sys
+import threading
 import time
 import psutil
-
+from flask import Flask, jsonify
 from CostumeMonitor import CostumeMonitor
 
+app = Flask(__name__)
 
-def main(argv):
+
+def init_montioring(*arg):
+    argv=arg
     min_value = None
     max_value = None
     interface_name = 'Wi-Fi'  # default
@@ -22,6 +26,7 @@ def main(argv):
 
     # Deal with the arguments
     for opt, arg in opts:
+
         if opt in ("-h", "--help"):
             usage()
             sys.exit()
@@ -59,7 +64,7 @@ def start_monitoring(costume_monitor):
         if old_value:
             current_value = new_value - old_value
             costume_monitor.send_state(current_value)
-            costume_monitor.check_values(current_value)
+            costume_monitor.check_network_values(current_value)
 
         old_value = new_value
         time.sleep(1)
@@ -96,9 +101,21 @@ def check_if_interface_name_exsist(interface_name_arg):
     sys.exit(2)
 
 
+@app.route("/")
+def hello_world():
+    return "<p>Hello, World!</p>"
+
+
+@app.route("/getMonitor")
+def get():
+    return jsonify("costume_monitor")
+
+
 if __name__ == '__main__':
     # interface_name = check_if_interface_name_exsist("Wi-Fi")
-    #
     # costume_monitor = CostumeMonitor(interface_name=interface_name, min_value=1000, max_value=100000000)
     # start_monitoring(costume_monitor)
-    main(sys.argv)
+    montioring = threading.Thread(target=init_montioring, name="Monitor", args=sys.argv)
+    montioring.start()
+    app.run()
+

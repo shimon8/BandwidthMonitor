@@ -43,17 +43,17 @@ class CostumeMonitor:
         # update graph falue
         self.update_last_min_sampling(current_value)
         value, format = self.format_bytes(current_value)
-        print(f"{value}{format}")
 
     def update_last_min_sampling(self, current_value):
         self.current_sampling = (self.current_sampling + 1) % self.sampling_long
         self.last_min_sampling[self.current_sampling] = current_value
-        print(self.current_sampling)
 
-    def check_values(self, current_value):
+    def check_network_values(self, current_value):
         if psutil.net_if_stats()[self.interface_name].isup == False:
             Notifier.send_notfication(f"your interface network is DOWN\n\t: interface name: {self.interface_name}")
         if current_value < self.min_value:
             Notifier.send_notfication(f"your bandwith is low\n\t current bandwith: {self.format_bytes(current_value)}")
         if current_value > self.max_value:
             Notifier.send_notfication(f"your bandwith is high\n\t: current bandwith: {self.format_bytes(current_value)}")
+
+
