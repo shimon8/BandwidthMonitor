@@ -2,19 +2,20 @@ import getopt
 import sys
 import threading
 import time
+
+import flask
 import psutil
-from flask import Flask, jsonify
 from CostumeMonitor import CostumeMonitor
+from flask import Flask, jsonify
+from flask_cors import CORS
 
-app = Flask(__name__)
 
-
-def init_montioring(*args):
-    argv=args
+# region init Monitoring
+def init_montioring(args):
+    argv = args
     min_value = None
     max_value = None
     interface_name = 'Wi-Fi'  # default
-
     # parse the arguments
     try:
         opts, args = getopt.getopt(argv[1:],
@@ -26,7 +27,6 @@ def init_montioring(*args):
 
     # Deal with the arguments
     for opt, arg in opts:
-
         if opt in ("-h", "--help"):
             usage()
             sys.exit()
@@ -52,18 +52,16 @@ def init_montioring(*args):
         usage()
         sys.exit(2)
     interface_name = check_if_interface_name_exsist(interface_name)
-    costume_monitor = CostumeMonitor(interface_name=interface_name, min_value=min_value, max_value=max_value)
-    start_monitoring(costume_monitor)
+    return CostumeMonitor(interface_name=interface_name, min_value=min_value, max_value=max_value)
 
 
-def start_monitoring(costume_monitor):
+def start_monitoring():
     old_value = 0
-
     while True:
         new_value = costume_monitor.get_bandwidh_value()
         if old_value:
             current_value = new_value - old_value
-            costume_monitor.send_state(current_value)
+            costume_monitor.update_sampling_list(current_value)
             costume_monitor.check_network_values(current_value)
 
         old_value = new_value
@@ -71,9 +69,6 @@ def start_monitoring(costume_monitor):
 
 
 def usage():
-    print("Usage: " + sys.argv[0] + " [options] <host>")
-    print
-    print("Mandatory arguments to long options are mandatory for short options too")
     print("  -h    --help                         display this help and exit")
     print("  -s    --min_value                    minimum limit  for network bandwidth(by bytes)")
     print("  -l    --max_value                    maximum limit  for network bandwidth(by bytes)")
@@ -101,24 +96,40 @@ def check_if_interface_name_exsist(interface_name_arg):
     sys.exit(2)
 
 
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+# endregion
 
 
-@app.route("/getMonitor")
-def get():
-    return jsonify("costume_monitor")
-@app.route("/stop")
-def stop():
-    montioring.join()
-    return jsonify("costume_monitor")
-global montioring
+app = Flask(__name__)
+CORS(app)
+
+
+# region route
+@app.route('/getLastSampling')
+def get_last_sampling():
+    response = flask.jsonify({'some': 'data'})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+
+@app.route('/getLastMintueSampling')
+def get_last_mintue_sampling():
+    response = flask.jsonify({'LastMinSampling': costume_monitor.last_min_sampling})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+# endregion
+
+
 if __name__ == '__main__':
     # interface_name = check_if_interface_name_exsist("Wi-Fi")
     # costume_monitor = CostumeMonitor(interface_name=interface_name, min_value=1000, max_value=100000000)
     # start_monitoring(costume_monitor)
-    #init_montioring(sys.argv)
-    montioring = threading.Thread(target=init_montioring, name="Monitor", args=sys.argv)
+    # # init_montioring(sys.argv)
+    # montioring = threading.Thread(target=init_montioring, name="Monitor", args=sys.argv)
+    # montioring.start()
+    costume_monitor = init_montioring(sys.argv)
+    print(costume_monitor)
+    montioring = threading.Thread(target=start_monitoring, name="Monitor")
     montioring.start()
-    app.run()
+
+    app.run(debug=True)

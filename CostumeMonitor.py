@@ -39,10 +39,10 @@ class CostumeMonitor:
             n = +1
         return round(value * 8,2), f'{power_labels[n]}bps'
 
-    def send_state(self, current_value):
+    def update_sampling_list(self, current_value):
         # update graph falue
         self.update_last_min_sampling(current_value)
-        value, format = self.format_bytes(current_value)
+        #value, format = self.format_bytes(current_value)
 
     def update_last_min_sampling(self, current_value):
         self.current_sampling = (self.current_sampling + 1) % self.sampling_long
