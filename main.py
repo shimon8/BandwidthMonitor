@@ -113,7 +113,7 @@ def get_last_sampling():
 
 @app.route('/getLastMintueSampling')
 def get_last_mintue_sampling():
-    response = flask.jsonify({'LastMinSampling': costume_monitor.last_min_sampling})
+    response = flask.jsonify({'LastMinSampling': costume_monitor.get_sampling_as_list()})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 

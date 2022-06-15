@@ -1,5 +1,7 @@
-import psutil
+from queue import Queue
 
+import psutil
+from collections import deque
 from Notifier import Notifier
 
 
@@ -12,7 +14,7 @@ class CostumeMonitor:
         self.current_sampling = 0
 
         self.sampling_long = 60  # 60 seconds
-        self.last_min_sampling = [0] * self.sampling_long  # 60 sec-> every element is sampling on the laste minute
+        self.last_min_sampling = Queue(maxsize=self.sampling_long)  # 60 sec-> every element is sampling on the laste minute
 
     def check_if_interface_name_exsist(self, interface_name_arg):
         interfaces = psutil.net_io_counters(pernic=True)
@@ -45,8 +47,10 @@ class CostumeMonitor:
         #value, format = self.format_bytes(current_value)
 
     def update_last_min_sampling(self, current_value):
-        self.current_sampling = (self.current_sampling + 1) % self.sampling_long
-        self.last_min_sampling[self.current_sampling] = current_value
+        # self.last_min_sampling[0] = current_value
+        # self.last_min_sampling.pop(self.sampling_long-1)
+        self.last_min_sampling.put(current_value)
+        print(self.get_sampling_as_list())
 
     def check_network_values(self, current_value):
         if psutil.net_if_stats()[self.interface_name].isup == False:
@@ -56,4 +60,5 @@ class CostumeMonitor:
         if current_value > self.max_value:
             Notifier.send_notfication(f"your bandwith is high\n\t: current bandwith: {self.format_bytes(current_value)}")
 
-
+    def get_sampling_as_list(self):
+        return list(self.last_min_sampling.queue)
