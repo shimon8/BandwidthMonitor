@@ -19,7 +19,7 @@ def init_montioring(args):
     # parse the arguments
     try:
         opts, args = getopt.getopt(argv[1:],
-                                   "s:l:i:",
+                                   "l:h:i:",
                                    ["min_value =", "max_value =", "help", "interface_name ="])
     except getopt.GetoptError:
         usage()
@@ -27,16 +27,16 @@ def init_montioring(args):
 
     # Deal with the arguments
     for opt, arg in opts:
-        if opt in ("-h", "--help"):
+        if opt == "--help":
             usage()
             sys.exit()
-        elif opt in ['-s', '--min_value ']:
+        elif opt in ['-l', '--low ']:
             min_value = makeInt(arg)
             if min_value < 0:
                 print("minimum value cannot be negative number")
                 usage()
                 sys.exit(2)
-        elif opt in ['-l', '--max_value ']:
+        elif opt in ['-h', '--high ']:
             max_value = makeInt(arg)
             if max_value < 0:
                 print("maximum value cannot be negative number")
@@ -69,10 +69,10 @@ def start_monitoring():
 
 
 def usage():
-    print("  -h    --help                         display this help and exit")
-    print("  -s    --min_value                    minimum limit  for network bandwidth(by bytes)")
-    print("  -l    --max_value                    maximum limit  for network bandwidth(by bytes)")
-    print("  -i    --interface_name               interface name for monitoring, Default=Wi-Fi")
+    print("        --help                   display this help and exit")
+    print("  -l    --low                    low  limit  for network bandwidth(by bytes)")
+    print("  -h    --high                   high limit  for network bandwidth(by bytes)")
+    print("  -i    --interface_name         interface name for monitoring, Default=Wi-Fi")
 
 
 def makeInt(value):
@@ -106,14 +106,14 @@ CORS(app)
 # region route
 @app.route('/getLastSampling')
 def get_last_sampling():
-    response = flask.jsonify({'some': 'data'})
+    response = flask.jsonify({'LastSampling': costume_monitor.get_current_sampling()})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
 
 @app.route('/getLastMintueSampling')
 def get_last_mintue_sampling():
-    response = flask.jsonify({'LastMinSampling': costume_monitor.get_sampling_as_list()})
+    response = flask.jsonify({'LastMinSampling': costume_monitor.get_last_min_sampling()})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
