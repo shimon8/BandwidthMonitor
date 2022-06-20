@@ -16,8 +16,7 @@ class CostumeMonitor:
         self.__current_bytes_recv = 0
 
         self.sampling_long = 60  # 60 seconds
-        self.__last_min_sampling = [
-                                       0] * 60  # Queue(maxsize=self.sampling_long)  # 60 sec-> every element is sampling on the laste minute
+        self.__last_min_sampling = [0] * 60
 
     def check_if_interface_name_exsist(self, interface_name_arg):
         interfaces = psutil.net_io_counters(pernic=True)
@@ -27,12 +26,8 @@ class CostumeMonitor:
                 self.interface_name = interface
         raise Exception(f"cannot find this interface : {interface_name_arg}")
 
-    def get_bandwidh_value(self):
-        current_interface = psutil.net_io_counters(pernic=True)[self.interface_name]
-        self.__current_bytes_sent = current_interface.bytes_sent
-        self.__current_bytes_recv = current_interface.bytes_recv
-
-        return self.__current_bytes_sent + self.__current_bytes_recv
+    def get_current_interface(self):
+        return psutil.net_io_counters(pernic=True)[self.interface_name]
 
     def format_bytes(self, value):
         # 2**10 = 1024
@@ -47,24 +42,28 @@ class CostumeMonitor:
             n = +1
         return round(value * 8, 2), f'{power_labels[n]}bps'
 
-    def update_sampling_list(self, current_value):
-        self.__current_sampling = current_value
-        self.__last_min_sampling.insert(0, current_value)
+    def update_sampling(self, bytes_send, bytes_recv):
+        self.__current_bytes_sent = bytes_send
+        self.__current_bytes_recv = bytes_recv
+        self.__current_sampling=self.__current_bytes_sent+self.__current_bytes_recv
+        self.__last_min_sampling.insert(0, self.__current_sampling)
         if (len(self.__last_min_sampling) >= self.sampling_long):
             self.__last_min_sampling.pop(self.sampling_long)
         # value, format = self.format_bytes(current_value)
 
-    def check_network_values(self, current_value):
+    def check_network_values(self):
         if psutil.net_if_stats()[self.interface_name].isup == False:
             Notifier.send_notfication(f"your interface network is DOWN\n\t: interface name: {self.interface_name}")
-        if current_value < self.min_value:
-            Notifier.send_notfication(f"your bandwith is low\n\t current bandwith: {self.format_bytes(current_value)}")
-        if current_value > self.max_value:
+        if self.__current_sampling < self.min_value:
+            Notifier.send_notfication(f"your bandwith is low\n\t current bandwith: {self.format_bytes(self.__current_sampling)}")
+        if self.__current_sampling > self.max_value:
             Notifier.send_notfication(
-                f"your bandwith is high\n\t: current bandwith: {self.format_bytes(current_value)}")
+                f"your bandwith is high\n\t: current bandwith: {self.format_bytes(self.__current_sampling)}")
 
     def get_last_min_sampling(self):
         return self.__last_min_sampling
 
     def get_current_sampling(self):
-        return self.__current_sampling
+        return {'bytes_sent': self.format_bytes(self.__current_bytes_sent),
+                'bytes_recv': self.format_bytes(self.__current_bytes_recv),
+                'current_bytes': self.format_bytes(self.__current_sampling)}

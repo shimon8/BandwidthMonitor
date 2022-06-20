@@ -9,6 +9,8 @@ from CostumeMonitor import CostumeMonitor
 from flask import Flask, jsonify
 from flask_cors import CORS
 
+DELAY_SAMPLING = 1
+
 
 # region init Monitoring
 def init_montioring(args):
@@ -56,16 +58,15 @@ def init_montioring(args):
 
 
 def start_monitoring():
-    old_value = 0
+    io = costume_monitor.get_current_interface()
     while True:
-        new_value = costume_monitor.get_bandwidh_value()
-        if old_value:
-            current_value = new_value - old_value
-            costume_monitor.update_sampling_list(current_value)
-            costume_monitor.check_network_values(current_value)
-
-        old_value = new_value
-        time.sleep(1)
+        time.sleep(DELAY_SAMPLING)
+        io_2 = costume_monitor.get_current_interface()
+        send_bytes = io_2.bytes_sent - io.bytes_sent
+        recv_bytes = io_2.bytes_recv - io.bytes_recv
+        costume_monitor.update_sampling(send_bytes,recv_bytes)
+        costume_monitor.check_network_values()
+        io=io_2
 
 
 def usage():
@@ -106,7 +107,7 @@ CORS(app)
 # region route
 @app.route('/getLastSampling')
 def get_last_sampling():
-    response = flask.jsonify({'LastSampling': costume_monitor.get_current_sampling()})
+    response = flask.jsonify(costume_monitor.get_current_sampling())
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
@@ -116,19 +117,11 @@ def get_last_mintue_sampling():
     response = flask.jsonify({'LastMinSampling': costume_monitor.get_last_min_sampling()})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
-
 # endregion
 
 
 if __name__ == '__main__':
-    # interface_name = check_if_interface_name_exsist("Wi-Fi")
-    # costume_monitor = CostumeMonitor(interface_name=interface_name, min_value=1000, max_value=100000000)
-    # start_monitoring(costume_monitor)
-    # # init_montioring(sys.argv)
-    # montioring = threading.Thread(target=init_montioring, name="Monitor", args=sys.argv)
-    # montioring.start()
     costume_monitor = init_montioring(sys.argv)
-    print(costume_monitor)
     montioring = threading.Thread(target=start_monitoring, name="Monitor")
     montioring.start()
 
