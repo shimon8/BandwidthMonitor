@@ -45,7 +45,7 @@ class CostumeMonitor:
     def update_sampling(self, bytes_send, bytes_recv):
         self.__current_bytes_sent = bytes_send
         self.__current_bytes_recv = bytes_recv
-        self.__current_sampling=self.__current_bytes_sent+self.__current_bytes_recv
+        self.__current_sampling = self.__current_bytes_sent + self.__current_bytes_recv
         self.__last_min_sampling.insert(0, self.__current_sampling)
         if (len(self.__last_min_sampling) >= self.sampling_long):
             self.__last_min_sampling.pop(self.sampling_long)
@@ -55,15 +55,20 @@ class CostumeMonitor:
         if psutil.net_if_stats()[self.interface_name].isup == False:
             Notifier.send_notfication(f"your interface network is DOWN\n\t: interface name: {self.interface_name}")
         if self.__current_sampling < self.min_value:
-            Notifier.send_notfication(f"your bandwith is low\n\t current bandwith: {self.format_bytes(self.__current_sampling)}")
+            Notifier.send_notfication(
+                f"your bandwith is low\n\t current bandwith: {self.format_bytes(self.__current_sampling)}")
         if self.__current_sampling > self.max_value:
             Notifier.send_notfication(
                 f"your bandwith is high\n\t: current bandwith: {self.format_bytes(self.__current_sampling)}")
 
-    def get_last_min_sampling(self):
-        return self.__last_min_sampling
+    def get_sampling_info(self):
+        low = ' '.join(map(str,self.format_bytes(self.min_value)))
+        high = ' '.join(map(str,self.format_bytes(self.max_value)))
+        return {'LastMinSampling': self.__last_min_sampling,
+                'Low': low,
+                'High': high}
 
     def get_current_sampling(self):
-        return {'bytes_sent': self.format_bytes(self.__current_bytes_sent),
-                'bytes_recv': self.format_bytes(self.__current_bytes_recv),
-                'current_bytes': self.format_bytes(self.__current_sampling)}
+        return {'bytes_sent': self.__current_bytes_sent,
+                'bytes_recv': self.__current_bytes_recv,
+                'current_bytes': self.__current_sampling}

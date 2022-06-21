@@ -68,7 +68,6 @@ def start_monitoring():
         costume_monitor.check_network_values()
         io=io_2
 
-
 def usage():
     print("        --help                   display this help and exit")
     print("  -l    --low                    low  limit  for network bandwidth(by bytes)")
@@ -112,9 +111,9 @@ def get_last_sampling():
     return response
 
 
-@app.route('/getLastMintueSampling')
-def get_last_mintue_sampling():
-    response = flask.jsonify({'LastMinSampling': costume_monitor.get_last_min_sampling()})
+@app.route('/getSamplingInfo')
+def get_sampling_info():
+    response = flask.jsonify(costume_monitor.get_sampling_info())
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 # endregion
