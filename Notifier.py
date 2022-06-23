@@ -7,7 +7,7 @@ from win10toast import ToastNotifier
 class Notifier:
     lock = threading.Lock()
     notifier = ToastNotifier()
-    waiting_after_notification = 1
+    waiting_after_notification = 5
     title = "Network Bandwidth Alert"
     icon_path = rf'{os.path.dirname(os.path.realpath(__file__))}\assets\network.ico'
 
@@ -15,9 +15,9 @@ class Notifier:
     def send_notfication(desc):
         try:
             Notifier.lock.acquire()
-            Notifier.notifier.show_toast("Network Bandwidth Alert", desc, icon_path=Notifier.icon_path, duration=2)
-        except:
-            print("error?")
+            Notifier.notifier.show_toast("Network Bandwidth Alert", desc, icon_path=Notifier.icon_path, duration=1)
+        except Exception as error:
+            print(error)
         finally:
-            Notifier.lock.release()
             time.sleep(Notifier.waiting_after_notification)
+            Notifier.lock.release()
