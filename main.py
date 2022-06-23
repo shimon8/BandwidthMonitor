@@ -6,7 +6,7 @@ import time
 import flask
 import psutil
 from CostumeMonitor import CostumeMonitor
-from flask import Flask, jsonify
+from flask import Flask
 from flask_cors import CORS
 
 DELAY_SAMPLING = 1

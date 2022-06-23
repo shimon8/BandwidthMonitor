@@ -19,6 +19,7 @@ def add_to_startup_linux(min_value, max_value, interface=None):
     # TODO
 
 
+# insert your values
 min_value = 0
 max_value = 100000
 interface = None
