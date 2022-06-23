@@ -1,23 +1,23 @@
 import os
+import threading
 
-from pynotifier import Notification
+import time
 from win10toast import ToastNotifier
 
-
 class Notifier:
+    lock = threading.Lock()
+    notifier = ToastNotifier()
+    waiting_after_notification = 1
+    title = "Network Bandwidth Alert"
+    icon_path = rf'{os.path.dirname(os.path.realpath(__file__))}\assets\network.ico'
+
     @staticmethod
     def send_notfication(desc):
         try:
-            notf = ToastNotifier()
-            icon_path=rf'{os.path.dirname(os.path.realpath(__file__))}\assets\network.ico'
-            notf.show_toast("Network Bandwidth Alert", desc, icon_path)
-            # Notification(
-            #     title='network notificatin',
-            #     icon_path=r"./assets/network.ico",
-            #     # On Windows .ico is required, on Linux - .png
-            #     description=desc,
-            #     duration=5,  # Duration in seconds
-            #     urgency='normal'
-            # ).send()
+            Notifier.lock.acquire()
+            Notifier.notifier.show_toast("Network Bandwidth Alert", desc, icon_path=Notifier.icon_path, duration=2)
         except:
-            print("Error", desc)
+            print("error?")
+        finally:
+            Notifier.lock.release()
+            time.sleep(Notifier.waiting_after_notification)
